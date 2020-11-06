@@ -5,14 +5,14 @@ pipeline {
             steps {
                 script {   
                     echo "Building the application..."   
-                    echo "Branch $GIT_BRANCH" 
+                    echo "Branch $env.GIT_BRANCH" 
                 }
             }
         }
         stage('test') {
             when {
                 expression {
-                    GIT_BRANCH == 'master'
+                    env.GIT_BRANCH == 'master'
                 }
             }
             steps {

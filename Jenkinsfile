@@ -5,6 +5,7 @@ pipeline {
             steps {
                 script {   
                     echo "Building the application..."   
+                    echo "Branch $BRANCH_NAME" 
                 }
             }
         }

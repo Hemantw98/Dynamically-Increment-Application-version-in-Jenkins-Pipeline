@@ -16,6 +16,7 @@ pipeline {
         stage("build jar") {
             steps {
                 script {
+                    echo "bla"
                     //gv.buildJar()
                 }
             }
@@ -23,6 +24,7 @@ pipeline {
         stage("build image") {
             steps {
                 script {
+                    echo "bla"
                     //gv.buildImage()
                 }
             }

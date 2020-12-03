@@ -26,6 +26,10 @@ pipeline {
                 script {
                     echo "building image"
                     //gv.buildImage()
+                    withKubeConfig([credentialsId: 'k8s-credentials', serverUrl: 'https://64e7e2ab-5838-45f5-bba7-dbb7c20f0e14.eu-central-1.linodelke.net']) {
+                        sh 'kubectl get nodes'
+                    }
+
                 }
             }
         }

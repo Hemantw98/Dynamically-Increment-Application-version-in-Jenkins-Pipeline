@@ -18,7 +18,7 @@ pipeline {
                 script {
                     echo "building jar"
                     //gv.buildJar()
-                    sh 'helm repo add brigade https://brigadecore.github.io/charts"
+                    sh 'helm repo add brigade https://brigadecore.github.io/charts'
                     sh 'helm search repo brigade'
                     
                 }

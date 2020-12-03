@@ -16,15 +16,18 @@ pipeline {
         stage("build jar") {
             steps {
                 script {
-                    echo "bla"
+                    echo "building jar"
                     //gv.buildJar()
+                    sh 'helm repo add brigade https://brigadecore.github.io/charts"
+                    sh 'helm search repo brigade'
+                    
                 }
             }
         }
         stage("build image") {
             steps {
                 script {
-                    echo "bla"
+                    echo "building image"
                     //gv.buildImage()
                 }
             }
@@ -32,7 +35,8 @@ pipeline {
         stage("deploy") {
             steps {
                 script {
-                    gv.deployApp()
+                    echo "deploying"
+                    //gv.deployApp()
                 }
             }
         }

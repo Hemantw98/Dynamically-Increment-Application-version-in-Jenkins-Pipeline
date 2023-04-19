@@ -33,9 +33,9 @@ pipeline {
         stage("build and push image") {
             steps {
                 script {
-                    buildImage 'nanajanashia/demo-app:jma-3.0'
+                    buildImage 'hemantw98/my-repo:-3.0'
                     dockerLogin()
-                    dockerPush 'nanajanashia/demo-app:jma-3.0'
+                    dockerPush 'hemantw98/my-repo:jma-3.0'
                 }
             }
         }

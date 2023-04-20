@@ -33,7 +33,7 @@ pipeline {
         stage("build and push image") {
             steps {
                 script {
-                    buildImage 'hemantw98/my-repo:-3.0'
+                    buildImage 'hemantw98/my-repo:jma-3.0'
                     dockerLogin()
                     dockerPush 'hemantw98/my-repo:jma-3.0'
                 }

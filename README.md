@@ -106,14 +106,15 @@ Once you have configured the pipeline job, test and verify it by making a change
 
 Here are the steps for creating a CI Pipeline for a Java Maven application to build and push to the repository:
 
-Install Build Tools (Maven, Node) in Jenkins:
+### 1. Install Build Tools (Maven, Node) in Jenkins:
 
 Log in to your Jenkins server and navigate to Manage Jenkins > Global Tool Configuration.
 Scroll down to the "Maven" section and click "Add Maven".
 Enter a name for the Maven installation and select the version you want to install.
 Repeat the process for Node.js and npm if needed.
 Click "Save" to save the configuration.
-Make Docker available on Jenkins server:
+
+### 2. Make Docker available on Jenkins server:
 
 Install Docker on your Jenkins server if it is not already installed.
 Add the Jenkins user to the "docker" group:
@@ -121,13 +122,15 @@ Add the Jenkins user to the "docker" group:
     sudo usermod -aG docker jenkins
     sudo systemctl restart jenkins
 
-Create Jenkins credentials for a Git repository:
+### 3. Create Jenkins credentials for a Git repository:
 
 Navigate to Jenkins > Credentials > System > Global credentials (unrestricted).
 Click "Add Credentials".
 Select the appropriate credential type (e.g. "Username with password" for a Git username and password).
 Enter the necessary information and click "OK".
-Create different Jenkins job types (Freestyle, Pipeline, Multibranch pipeline) for the Java Maven project with Jenkinsfile to:
+
+### 4. Create different Jenkins job types (Freestyle, Pipeline, Multibranch pipeline) for the Java Maven project with Jenkinsfile to:
+
 a. Connect to the application's Git repository:
 
 Create a new Jenkins job (e.g. "Java-Maven-Freestyle").
@@ -170,7 +173,7 @@ Specify the Docker registry credentials and the Docker image name and tag.
 
 Click "Save" to save the job configuration.
 
-To create a Pipeline or Multibranch Pipeline job:
+### 5. To create a Pipeline or Multibranch Pipeline job:
 
 a. Create a new Jenkins job.
 

@@ -1,188 +1,83 @@
-## Create a CI Pipeline with Jenkinsfile (Freestyle, Pipeline, Multibranch Pipeline)
+## Dynamically Increment Application version in Jenkins Pipeline
 
 ### Technologies used:
-Jenkins, Docker, Linux, Git, Java, Maven
+
+Jenkins, Docker, GitLab, Git, Java, Maven
 
 ### Project Description:
 
-CI Pipeline for a Java Maven application to build and push to the repository
+Configure CI step: Increment patch version
 
-  Install Build Tools (Maven, Node) in Jenkins
-  Make Docker available on Jenkins server
-  Create Jenkins credentials for a git repository
-  
-  Create different Jenkins job types (Freestyle, Pipeline, Multibranch pipeline) for the Java Maven project with Jenkinsfile to:
-  
- 1. Connect to the application’s git repository 
- 2. Build Jar
- 3. Build Docker Image
- 4. Push to private DockerHub repository
- 
- 
- Here's a detailed explanation of how to create a CI pipeline with Jenkinsfile for different Jenkins job types, including Freestyle, Pipeline, and Multibranch Pipeline:
- 
- ### Freestyle Job:
- 
- A Freestyle job in Jenkins allows you to create a custom build pipeline with sequential build steps. Here are the steps to create a Freestyle job with Jenkinsfile:
- 
-Step 1: Create a new Freestyle job in Jenkins:
+Configure CI step: Build Java application and clean old artifacts
 
-Click on "New Item" on the Jenkins home page and give your job a name.
-Select "Freestyle project" and click on "OK" to create the job.
-Step 2: Configure the job:
+Configure CI step: Build Image with dynamic Docker Image Tag
 
-In the job configuration page, under the "Source Code Management" section, select the appropriate SCM system (e.g., Git) and provide the repository URL and credentials to access your Java Maven application's git repository.
-Under the "Build" section, add build steps to build your Maven application, such as running Maven commands to build the JAR file. For example:
+Configure CI step: Push Image to private DockerHub repository
+
+Configure CI step: Commit version update of Jenkins back to Git repository
+
+Configure Jenkins pipeline to not trigger automatically on CI build commit to avoid commit loop
+
+Let's break down the steps for dynamically incrementing the application version in a Jenkins pipeline. We'll assume that you have a Jenkins server set up and configured with plugins for Docker, GitLab, and Maven.
+
+### Step 1: Configure CI step - Increment patch version
+
+This step involves incrementing the patch version of your Java application. You can use a plugin like "Version Number Plugin" in Jenkins to achieve this. Here are the commands to increment the patch version using Maven:
+
+    mvn build-helper:parse-version versions:set \
+    -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion} \
+    versions:commit
+    
+This command uses Maven's build-helper and versions plugins to parse the current version of the application from the pom.xml file, increment the patch version, and commit the changes back to the pom.xml file.
+
+### Step 2: Configure CI step - Build Java application and clean old artifacts
+
+This step involves building your Java application and cleaning old artifacts. You can use the following commands:
 
     mvn clean install
-
-Optionally, you can add build steps to build and push Docker image, and push the JAR and Docker image to the repository as needed. For example:
-
-        docker build -t my-image .
-    docker push my-image:tag
     
-Save the job configuration.
+This command uses Maven to clean the project and build the Java application, generating artifacts like JAR files.
 
-### Pipeline Job:
+### Step 3: Configure CI step - Build Image with dynamic Docker Image Tag
 
-A Pipeline job in Jenkins allows you to define your entire build pipeline as a script using the Jenkinsfile. Here are the steps to create a Pipeline job with Jenkinsfile:
+This step involves building a Docker image with a dynamic Docker image tag that includes the application version. You can use the following commands: 
 
-Step 1: Create a new Pipeline job in Jenkins:
+    docker build -t myapp:${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} .
 
-Click on "New Item" on the Jenkins home page and give your job a name.
-Select "Pipeline" and click on "OK" to create the job.
-Step 2: Define the pipeline script in Jenkinsfile:
+This command uses Docker to build an image from the current directory (.) with a tag that includes the major, minor, and incremental version numbers parsed from the pom.xml file.
 
-In the job configuration page, under the "Pipeline" section, select "Pipeline script" and enter the pipeline script in the text area.
-The Jenkinsfile can include stages for building the JAR, building the Docker image, and pushing the JAR and Docker image to the repository, using the credentials created earlier. Here's an example Jenkinsfile:
+### Step 4: Configure CI step - Push Image to private DockerHub repository
 
-    pipeline {
-        agent any
+This step involves pushing the Docker image to a private DockerHub repository. You can use the following commands:
 
-        stages {
-            stage('Build') {
-                steps {
-                    sh 'mvn clean install'
-                }
-            }
-            stage('Build Docker Image') {
-                steps {
-                    sh 'docker build -t my-image .'
-                }
-            }
-            stage('Push Docker Image') {
-                steps {
-                    withCredentials([usernamePassword(credentialsId: 'your-git-credentials', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh 'docker login -u $GIT_USERNAME -p $GIT_PASSWORD'
-                        sh 'docker push my-image:tag'
-                    }
-                }
-            }
-        }
-    }
+    docker login -u <username> -p <password>
+    docker push myapp:${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}
+    
+These commands first login to DockerHub with the provided username and password, and then push the Docker image to the private repository with the dynamic image tag.
 
-Save the job configuration.
+### Step 5: Configure CI step - Commit version update of Jenkins back to Git repository
+This step involves committing the updated version number back to the Git repository. You can use the following commands:
 
-### Multibranch Pipeline Job:
+    git add pom.xml
+    git commit -m "Increment version number to ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}"
+    git push origin <branch-name>
+    
+These commands add and commit the changes made to the pom.xml file, including the updated version number, and push the changes back to the Git repository on the specified branch.
 
-A Multibranch Pipeline job in Jenkins allows you to automatically create pipelines for each branch in your git repository. Here are the steps to create a Multibranch Pipeline job with Jenkinsfile:
-Step 1: Create a new Multibranch Pipeline job in Jenkins:
+### Step 6: Configure Jenkins pipeline to not trigger automatically on CI build commit
+To avoid a commit loop, you can configure your Jenkins pipeline not to trigger automatically on a CI build commit. You can use the following command in your Jenkinsfile:
 
-Click on "New Item" on the Jenkins home page and give your job a name.
-Select "Multibranch Pipeline" and click on "OK" to create the job.
+    properties([
+      pipelineTriggers([]) // Disable automatic triggering on commit
+    ])
 
-Step 2: Configure the job:
+This command disables the automatic triggering of the Jenkins pipeline on a CI build commit, preventing a loop of continuous builds triggered by each commit.
 
-In the job configuration page, under the "Branch Sources" section, specify the SCM system (e.g., Git) and provide the repository URL and credentials to access your Java Maven application's git repository.
-Under the "Build Configuration" section, select "by Jenkinsfile" and provide the path to your Jenkinsfile in the "Script Path" field.
+That's it! You've successfully demonstrated the complete steps for dynamically incrementing the application version in a Jenkins pipeline using Jenkins, Docker, GitLab, Git, Java, and Maven. Please note that this is just a high-level overview, and you may need to adapt the commands to fit your specific setup and requirements.
+   
 
-### Configure Webhooks:
+    
 
-Configure a webhook to trigger the pipeline job automatically whenever a new code is pushed to the Git repository.
 
-### Test and Verify:
 
-Once you have configured the pipeline job, test and verify it by making a change in the Git repository and pushing it to the repository. Check if the pipeline job is triggered and executes successfully.
 
-Here are the steps for creating a CI Pipeline for a Java Maven application to build and push to the repository:
-
-### 1. Install Build Tools (Maven, Node) in Jenkins:
-
-Log in to your Jenkins server and navigate to Manage Jenkins > Global Tool Configuration.
-Scroll down to the "Maven" section and click "Add Maven".
-Enter a name for the Maven installation and select the version you want to install.
-Repeat the process for Node.js and npm if needed.
-Click "Save" to save the configuration.
-
-### 2. Make Docker available on Jenkins server:
-
-Install Docker on your Jenkins server if it is not already installed.
-Add the Jenkins user to the "docker" group:
-
-    sudo usermod -aG docker jenkins
-    sudo systemctl restart jenkins
-
-### 3. Create Jenkins credentials for a Git repository:
-
-Navigate to Jenkins > Credentials > System > Global credentials (unrestricted).
-Click "Add Credentials".
-Select the appropriate credential type (e.g. "Username with password" for a Git username and password).
-Enter the necessary information and click "OK".
-
-### 4. Create different Jenkins job types (Freestyle, Pipeline, Multibranch pipeline) for the Java Maven project with Jenkinsfile to:
-
-a. Connect to the application's Git repository:
-
-Create a new Jenkins job (e.g. "Java-Maven-Freestyle").
-
-Select "Freestyle project" as the job type.
-
-Enter a name for the job and click "OK".
-
-Under "Source Code Management", select "Git".
-
-Enter the repository URL and select the appropriate Git credentials.
-
-Optionally, specify a branch or tag to build.
-
-b. Build Jar:
-
-Under "Build", click "Add build step" and select "Invoke top-level Maven targets".
-
-In the "Goals" field, enter "clean package".
-
-Click "Save" to save the job configuration.
-
-c. Build Docker Image:
-
-Install the "Docker Build and Publish" plugin if it is not already installed.
-
-Under "Build", click "Add build step" and select "Docker Build and Publish".
-
-Enter a name for the Docker image and specify the Dockerfile location.
-
-Optionally, specify any build arguments or Docker registry credentials.
-
-Click "Save" to save the job configuration.
-
-d. Push to private DockerHub repository:
-
-Under "Post-build Actions", click "Add post-build action" and select "Push Docker Image".
-
-Specify the Docker registry credentials and the Docker image name and tag.
-
-Click "Save" to save the job configuration.
-
-### 5. To create a Pipeline or Multibranch Pipeline job:
-
-a. Create a new Jenkins job.
-
-b. Select "Pipeline" or "Multibranch Pipeline" as the job type.
-
-c. Enter a name for the job and click "OK".
-
-d. In the job configuration, specify the Jenkinsfile location and any necessary parameters or variables.
-
-e. Save the job configuration.
-
-That's it! You now have a CI Pipeline set up for your Java Maven application that builds and pushes Docker images to a private registry.
